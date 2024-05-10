@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button, Modal, Box, Typography, TextField } from '@mui/material';
+import { Recipe } from '@prisma/client';
 
 interface RecipeModalProps {
   open: boolean;
   handleClose: () => void;
-  handleSubmit: (recipeData: { title: string; description: string, steps: string }) => void;
+  handleSubmit: (recipeData: { title: string; description: string, steps: string }, id?: number) => void;
+  recipe: Recipe | null; 
 }
 
 const style = {
@@ -19,13 +21,29 @@ const style = {
   p: 4,
 };
 
-const RecipeModal = ({ open, handleClose, handleSubmit }: RecipeModalProps) => {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [steps, setSteps] = useState('');
+const RecipeModal = ({ open, handleClose, handleSubmit, recipe }: RecipeModalProps) => {
+  const [title, setTitle] = useState<string>('');
+  const [description, setDescription] = useState<string>('');
+  const [steps, setSteps] = useState<string>('');
+
+  useEffect(() => {
+    if (recipe) {
+      setTitle(recipe.title);
+      setDescription(recipe.description || '');
+      setSteps(recipe.steps);
+    } else {
+      setTitle('');
+      setDescription('');
+      setSteps('');
+    }
+  }, [recipe]);
 
   const submitAndClose = () => {
-    handleSubmit({ title, description, steps });
+    if (recipe) {
+      handleSubmit({ title, description, steps }, recipe.id);
+    } else {
+      handleSubmit({ title, description, steps });
+    }
     handleClose();
   };
 
@@ -38,34 +56,30 @@ const RecipeModal = ({ open, handleClose, handleSubmit }: RecipeModalProps) => {
     >
       <Box sx={style}>
         <Typography id="modal-modal-title" variant="h6" component="h2">
-          新しいレシピを作成
+          {recipe ? "レシピを編集" : "新しいレシピを作成"}
         </Typography>
         <TextField
           margin="normal"
           fullWidth
           label="タイトル"
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-
+          onChange={(e) => setTitle(e.target.value)}/>
         <TextField
           margin="normal"
           fullWidth
           label="説明"
           multiline
           rows={4}
-          onChange={(e) => setDescription(e.target.value)}
-        />
-
+          value={description}
+          onChange={(e) => setDescription(e.target.value)} />
         <TextField
           margin="normal"
           fullWidth
           label="工程"
           multiline
           rows={4}
-          onChange={(e) => setSteps(e.target.value)}
-        />
-
+          value={steps}
+          onChange={(e) => setSteps(e.target.value)}/>
         <Button onClick={submitAndClose} variant="contained" sx={{ mt: 2 }}>
           保存
         </Button>
