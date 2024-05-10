@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { GetServerSideProps } from 'next';
 import { PrismaClient, Recipe as BaseRecipe, User } from '@prisma/client';
-import { Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button } from '@mui/material';
+import { Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import RecipeModal from '../../components/RecipeModal';
 
 const prisma = new PrismaClient();
@@ -26,13 +26,36 @@ interface RecipesPageProps {
 const RecipesPage = ({ recipes: initialRecipes }: RecipesPageProps) => {
   const [recipes, setRecipes] = useState(initialRecipes);
   const [modalOpen, setModalOpen] = useState(false);
+  const [currentRecipe, setCurrentRecipe] = useState<Recipe | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [recipeToDelete, setRecipeToDelete] = useState<number | null>(null);
 
-  const handleOpen = () => setModalOpen(true);
-  const handleClose = () => setModalOpen(false);
+  const fetchRecipes = async () => {
+    const response = await fetch('/api/recipes');
+    if (response.ok) {
+      const fetchedRecipes = await response.json();
+      setRecipes(fetchedRecipes);
+    } else {
+      console.error('Failed to fetch recipes');
+    }
+  };
 
-  const handleSubmit = async (recipeData: { title: string; description: string, steps: string }) => {
-    const response = await fetch('/api/recipes/create', {
-      method: 'POST',
+  const handleOpen = (recipe?: Recipe) => {
+    setCurrentRecipe(recipe || null);
+    setModalOpen(true);
+  };
+
+  const handleClose = () => {
+    setModalOpen(false);
+    setCurrentRecipe(null);
+  };
+
+  const handleSubmit = async (recipeData: { title: string; description: string, steps: string }, id?: number) => {
+    const method = id ? 'PUT' : 'POST';
+    const url = id ? `/api/recipes/${id}` : '/api/recipes';
+
+    const response = await fetch(url, {
+      method: method,
       headers: {
         'Content-Type': 'application/json',
       },
@@ -40,18 +63,43 @@ const RecipesPage = ({ recipes: initialRecipes }: RecipesPageProps) => {
     });
 
     if (response.ok) {
-      const newRecipe = await response.json();
-      setRecipes([...recipes, newRecipe]);
+      fetchRecipes();
       handleClose();
     } else {
       console.error('Something went wrong');
     }
   };
 
+  const handleDeleteConfirmation = (id: number) => {
+    setRecipeToDelete(id);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (recipeToDelete == null) return;
+
+    const response = await fetch(`/api/recipes/${recipeToDelete}`, {
+      method: 'DELETE'
+    });
+
+    if (response.ok) {
+      fetchRecipes();
+      setDeleteConfirmOpen(false);
+      setRecipeToDelete(null);
+    } else {
+      console.error('Failed to delete the recipe');
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteConfirmOpen(false);
+    setRecipeToDelete(null);
+  };
+
   return (
     <div>
       <Typography variant="h4" gutterBottom>レシピ一覧</Typography>
-      <Button onClick={handleOpen} variant="contained" color="primary" sx={{ mb: 2 }}>
+      <Button onClick={() => handleOpen()} variant="contained" color="primary" sx={{ mb: 2 }}>
         新規作成
       </Button>
       <TableContainer component={Paper}>
@@ -61,6 +109,7 @@ const RecipesPage = ({ recipes: initialRecipes }: RecipesPageProps) => {
               <TableCell>タイトル</TableCell>
               <TableCell align="right">説明</TableCell>
               <TableCell align="right">作成者</TableCell>
+              <TableCell align="right">操作</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -69,12 +118,37 @@ const RecipesPage = ({ recipes: initialRecipes }: RecipesPageProps) => {
                 <TableCell component="th" scope="recipe">{recipe.title}</TableCell>
                 <TableCell align="right">{recipe.description}</TableCell>
                 <TableCell align="right">{recipe.user.username}</TableCell>
+                <TableCell align="right">
+                  <Button onClick={() => handleOpen(recipe)} color="primary">編集</Button>
+                  <Button onClick={() => handleDeleteConfirmation(recipe.id)} color="secondary">削除</Button>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
-      <RecipeModal open={modalOpen} handleClose={handleClose} handleSubmit={handleSubmit} />
+      <RecipeModal open={modalOpen} handleClose={handleClose} handleSubmit={handleSubmit} recipe={currentRecipe} />
+      <Dialog
+        open={deleteConfirmOpen}
+        onClose={handleCancelDelete}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">{"このレシピを削除しますか？"}</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            この操作は元に戻せません。本当に削除しますか？
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancelDelete} color="primary">
+            キャンセル
+          </Button>
+          <Button onClick={handleDelete} color="primary" autoFocus>
+            削除
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

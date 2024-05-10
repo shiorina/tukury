@@ -16,13 +16,41 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  if (req.method === 'POST') {
-    const session: Session | null = await getServerSession(req, res, authOptions);
+  const session: Session | null = await getServerSession(req, res, authOptions);
 
-    if (session && session.user && session.user.email) {
+  if (!session || !session.user || !session.user.email) {
+    return res.status(401).json({error: '認証されませんでした'});
+  }
+
+  switch (req.method) {
+    case 'GET':
+      try {
+        const recipes = await prisma.recipe.findMany({
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            steps: true,
+            user: {
+              select: {
+                id: true,
+                username: true,
+                email: true
+              }
+            }
+          }
+        });
+        res.status(200).json(recipes);
+      } catch (e) {
+        console.error("Error retrieving recipes:", e);
+        res.status(500).json({ error: "レシピの取得に失敗しました", details: e });
+      }
+      break;
+
+    case 'POST':
       const currentUser = await prisma.user.findUnique({
         where: {email: session.user.email}
-      })
+      });
   
       if (!currentUser) {
         return res.status(404).json({error: "ユーザーが見つかりません"});
@@ -56,13 +84,11 @@ export default async function handler(
         console.error("Error creating recipe:", e);
         res.status(500).json({ error: "レシピの作成に失敗しました", details: e });
       }
-    } else {
-      res.status(401).json({error: '認証されませんでした'});
-    }
+      break;
 
-    
-  } else {
-    res.setHeader('Allow', ['POST']);
-    res.status(405).end(`Method ${req.method} Not Allowed`);
+    default:
+      res.setHeader('Allow', ['GET', 'POST']);
+      res.status(405).end(`Method ${req.method} Not Allowed`);
+      break;
   }
 }
