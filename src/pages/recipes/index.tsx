@@ -3,6 +3,8 @@ import { GetServerSideProps } from 'next';
 import { PrismaClient, Recipe as BaseRecipe, User } from '@prisma/client';
 import { Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import RecipeModal from '../../components/RecipeModal';
+import { toast } from 'react-toastify';
+
 
 const prisma = new PrismaClient();
 
@@ -53,7 +55,7 @@ const RecipesPage = ({ recipes: initialRecipes }: RecipesPageProps) => {
   const handleSubmit = async (recipeData: { title: string; description: string, steps: string }, id?: number) => {
     const method = id ? 'PUT' : 'POST';
     const url = id ? `/api/recipes/${id}` : '/api/recipes';
-
+  
     const response = await fetch(url, {
       method: method,
       headers: {
@@ -61,12 +63,13 @@ const RecipesPage = ({ recipes: initialRecipes }: RecipesPageProps) => {
       },
       body: JSON.stringify(recipeData),
     });
-
+  
     if (response.ok) {
       fetchRecipes();
       handleClose();
+      toast.success(id ? "レシピが更新されました" : "レシピが作成できました");
     } else {
-      console.error('Something went wrong');
+      toast.error(id ? "レシピの更新に失敗しました" : "レシピの作成に失敗しました");
     }
   };
 
@@ -77,17 +80,19 @@ const RecipesPage = ({ recipes: initialRecipes }: RecipesPageProps) => {
 
   const handleDelete = async () => {
     if (recipeToDelete == null) return;
-
+  
     const response = await fetch(`/api/recipes/${recipeToDelete}`, {
       method: 'DELETE'
     });
-
+  
     if (response.ok) {
       fetchRecipes();
       setDeleteConfirmOpen(false);
       setRecipeToDelete(null);
+      toast.success("レシピを削除しました");
     } else {
       console.error('Failed to delete the recipe');
+      toast.error("レシピの削除に失敗しました");
     }
   };
 
