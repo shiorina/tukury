@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { GetServerSideProps } from 'next';
 import { PrismaClient, Recipe as BaseRecipe, User } from '@prisma/client';
 import { Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
-import RecipeModal from '../../components/RecipeModal';
+import RecipeModal from '@/components/RecipeModal';
 import { toast } from 'react-toastify';
 
 
