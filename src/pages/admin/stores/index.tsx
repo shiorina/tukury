@@ -1,8 +1,25 @@
 import { useState, useEffect } from 'react';
 import { GetServerSideProps } from 'next';
 import { PrismaClient, Store } from '@prisma/client';
-import { Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
-import StoreModal from '@/components/StoreModal';
+import axios from 'axios';
+import {
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  TextField,
+} from '@mui/material';
+import CustomModal from '@/components/CustomModal';
 import { toast } from 'react-toastify';
 
 const prisma = new PrismaClient();
@@ -22,6 +39,8 @@ const StoresPage = ({ stores: initialStores }: StoresPageProps) => {
   const [currentStore, setCurrentStore] = useState<Store | null>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [storeToDelete, setStoreToDelete] = useState<number | null>(null);
+  const [name, setName] = useState<string>('');
+  const [url, setUrl] = useState<string>('');
 
   const fetchStores = async () => {
     const response = await fetch('/api/private/admin/stores');
@@ -37,39 +56,83 @@ const StoresPage = ({ stores: initialStores }: StoresPageProps) => {
     fetchStores();
   }, []);
 
-  const handleOpen = (store?: Store) => {
-    setCurrentStore(store || null);
+  const handleOpen = (currentStore?: Store) => {
+    // 編集時にはcurrentStoreの値をセットする
+    if (currentStore) {
+      setCurrentStore(currentStore);
+      setName(currentStore.name);
+      setUrl(currentStore.url || '');
+    }
+
+    // モーダルを開く
     setModalOpen(true);
   };
 
   const handleClose = () => {
+    // モーダルを閉じる
     setModalOpen(false);
-    setTimeout(() => {
-      setCurrentStore(null);
-    }, 300);
+
+    // モーダル内の値をリセット
+    setCurrentStore(null);
+    setName('');
+    setUrl('');
   };
 
-  const handleSubmit = async (storeData: { name: string; url?: string }, id?: number) => {
-    const method = id ? 'PUT' : 'POST';
-    const url = id ? `/api/private/admin/stores/${id}` : '/api/private/admin/stores';
-
-    const response = await fetch(url, {
-      method: method,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(storeData),
-    });
-
-    if (response.ok) {
-      fetchStores();
-      handleClose();
-      toast.success(id ? "ストアが更新されました" : "新しいストアが登録されました");
-    } else {
-      toast.error(id ? "ストアの更新に失敗しました" : "ストアの登録に失敗しました");
+  const postStore = async (storeData: { name: string; url: string }) => {
+    try {
+      const response = await axios.post('/api/private/admin/stores', storeData, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      if (response.status === 200) {
+        toast.success("新しいストアが登録されました");
+        return response.data;
+      } else {
+        toast.error("ストアの登録に失敗しました");
+        return null;
+      }
+    } catch (error) {
+      console.error('Error during POST request:', error);
+      toast.error("ストアの登録に失敗しました");
+      return null;
     }
   };
 
+  const updateStore = async (id: number, storeData: { name: string; url: string }) => {
+    try {
+      const response = await axios.put(`/api/private/admin/stores/${id}`, storeData, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      if (response.status === 200) {
+        toast.success("ストアが更新されました");
+        return response.data;
+      } else {
+        toast.error("ストアの更新に失敗しました");
+        return null;
+      }
+    } catch (error) {
+      console.error('Error during PUT request:', error);
+      toast.error("ストアの更新に失敗しました");
+      return null;
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (currentStore) {
+      await updateStore(currentStore.id, { name, url });
+    } else {
+      await postStore({ name, url });
+    }
+    
+    fetchStores();
+    handleClose();
+  };
+  
   const handleDeleteConfirmation = (id: number) => {
     setStoreToDelete(id);
     setDeleteConfirmOpen(true);
@@ -127,7 +190,37 @@ const StoresPage = ({ stores: initialStores }: StoresPageProps) => {
           </TableBody>
         </Table>
       </TableContainer>
-      <StoreModal open={modalOpen} handleClose={handleClose} handleSubmit={handleSubmit} store={currentStore} />
+      
+      <CustomModal
+        open={modalOpen}
+        onClose={handleClose}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <>
+          <Typography id="modal-modal-title" variant="h6" component="h2">
+            {currentStore ? "ストアを編集" : "新しいストアを作成"}
+          </Typography>
+          <TextField
+            margin="normal"
+            fullWidth
+            label="名前"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+          <TextField
+            margin="normal"
+            fullWidth
+            label="URL"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+          />
+          <Button onClick={handleSubmit} variant="contained" sx={{ mt: 2 }}>
+            保存
+          </Button>
+        </>
+      </CustomModal>
+
       <Dialog
         open={deleteConfirmOpen}
         onClose={handleCancelDelete}
