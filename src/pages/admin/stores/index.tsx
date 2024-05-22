@@ -1,3 +1,4 @@
+// src/pages/admin/stores/index.tsx
 import { useState, useEffect } from 'react';
 import { GetServerSideProps } from 'next';
 import { PrismaClient, Store } from '@prisma/client';
@@ -20,6 +21,7 @@ import {
   TextField,
 } from '@mui/material';
 import CustomModal from '@/components/CustomModal';
+import Layout from '@/components/Layout';
 import { toast } from 'react-toastify';
 
 const prisma = new PrismaClient();
@@ -62,6 +64,10 @@ const StoresPage = ({ stores: initialStores }: StoresPageProps) => {
       setCurrentStore(currentStore);
       setName(currentStore.name);
       setUrl(currentStore.url || '');
+    } else {
+      setCurrentStore(null);
+      setName('');
+      setUrl('');
     }
 
     // モーダルを開く
@@ -85,7 +91,7 @@ const StoresPage = ({ stores: initialStores }: StoresPageProps) => {
           'Content-Type': 'application/json',
         },
       });
-  
+
       if (response.status === 200) {
         toast.success("新しいストアが登録されました");
         return response.data;
@@ -107,7 +113,7 @@ const StoresPage = ({ stores: initialStores }: StoresPageProps) => {
           'Content-Type': 'application/json',
         },
       });
-  
+
       if (response.status === 200) {
         toast.success("ストアが更新されました");
         return response.data;
@@ -128,11 +134,11 @@ const StoresPage = ({ stores: initialStores }: StoresPageProps) => {
     } else {
       await postStore({ name, url });
     }
-    
+
     fetchStores();
     handleClose();
   };
-  
+
   const handleDeleteConfirmation = (id: number) => {
     setStoreToDelete(id);
     setDeleteConfirmOpen(true);
@@ -162,7 +168,7 @@ const StoresPage = ({ stores: initialStores }: StoresPageProps) => {
   };
 
   return (
-    <div>
+    <Layout>
       <Typography variant="h4" gutterBottom>ストア一覧</Typography>
       <Button onClick={() => handleOpen()} variant="contained" color="primary" sx={{ mb: 2 }}>
         新規作成
@@ -190,7 +196,7 @@ const StoresPage = ({ stores: initialStores }: StoresPageProps) => {
           </TableBody>
         </Table>
       </TableContainer>
-      
+
       <CustomModal
         open={modalOpen}
         onClose={handleClose}
@@ -242,7 +248,7 @@ const StoresPage = ({ stores: initialStores }: StoresPageProps) => {
           </Button>
         </DialogActions>
       </Dialog>
-    </div>
+    </Layout>
   );
 };
 
