@@ -12,7 +12,6 @@ model User {
   username String   @unique
   email    String   @unique
   password String
-  recipes  Recipe[]
 
   @@map(name: "users")
 }
@@ -22,8 +21,6 @@ model Recipe {
   title       String
   description String?
   steps       String
-  userId      Int                @map(name: "user_id")
-  user        User               @relation(fields: [userId], references: [id])
   ingredients RecipeIngredient[]
 
   @@map(name: "recipes")
