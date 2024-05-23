@@ -92,7 +92,7 @@ const StoresPage = ({ stores: initialStores }: StoresPageProps) => {
         },
       });
 
-      if (response.status === 200) {
+      if (response.status === 201) {
         toast.success("新しいストアが登録されました");
         return response.data;
       } else {
