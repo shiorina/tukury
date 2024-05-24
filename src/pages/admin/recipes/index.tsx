@@ -168,8 +168,8 @@ const RecipesPage = ({ recipes: initialRecipes }: RecipesPageProps) => {
 
   return (
     <Layout>
-      <Typography variant="h4" gutterBottom>レシピ一覧</Typography>
-      <Box display="flex" justifyContent="flex-end" mb={2}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+        <Typography variant="h4">レシピ一覧</Typography>
         <Button onClick={() => handleOpen()} variant="contained" color="primary">
           新規作成
         </Button>

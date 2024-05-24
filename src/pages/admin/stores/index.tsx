@@ -19,6 +19,7 @@ import {
   DialogContentText,
   DialogTitle,
   TextField,
+  Box,
 } from '@mui/material';
 import CustomModal from '@/components/CustomModal';
 import Layout from '@/components/Layout';
@@ -59,7 +60,6 @@ const StoresPage = ({ stores: initialStores }: StoresPageProps) => {
   }, []);
 
   const handleOpen = (currentStore?: Store) => {
-    // 編集時にはcurrentStoreの値をセットする
     if (currentStore) {
       setCurrentStore(currentStore);
       setName(currentStore.name);
@@ -70,15 +70,11 @@ const StoresPage = ({ stores: initialStores }: StoresPageProps) => {
       setUrl('');
     }
 
-    // モーダルを開く
     setModalOpen(true);
   };
 
   const handleClose = () => {
-    // モーダルを閉じる
     setModalOpen(false);
-
-    // モーダル内の値をリセット
     setCurrentStore(null);
     setName('');
     setUrl('');
@@ -169,10 +165,12 @@ const StoresPage = ({ stores: initialStores }: StoresPageProps) => {
 
   return (
     <Layout>
-      <Typography variant="h4" gutterBottom>ストア一覧</Typography>
-      <Button onClick={() => handleOpen()} variant="contained" color="primary" sx={{ mb: 2 }}>
-        新規作成
-      </Button>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+        <Typography variant="h4" gutterBottom>ストア一覧</Typography>
+        <Button onClick={() => handleOpen()} variant="contained" color="primary">
+          新規作成
+        </Button>
+      </Box>
       <TableContainer component={Paper}>
         <Table aria-label="ストアのテーブル">
           <TableHead>
