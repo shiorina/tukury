@@ -30,6 +30,7 @@ model Ingredient {
   id          Int                @id @default(autoincrement())
   name        String             @unique
   description String?
+  label       String
   recipes     RecipeIngredient[]
 
   @@map(name: "ingredients")
