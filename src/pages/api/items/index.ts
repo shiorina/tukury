@@ -10,25 +10,26 @@ export default async function handler(
   switch (req.method) {
     case 'GET':
       try {
-        const ingredients = await prisma.ingredient.findMany();
-        res.status(200).json(ingredients);
+        const items = await prisma.item.findMany();
+        res.status(200).json(items);
       } catch (e) {
-        res.status(500).json({ error: 'Failed to fetch ingredients' });
+        res.status(500).json({ error: 'Failed to fetch items' });
       }
       break;
     
     case 'POST':
       try {
-        const { name, description } = req.body;
-        const ingredient = await prisma.ingredient.create({
+        const { name, description, label } = req.body;
+        const item = await prisma.item.create({
           data: {
             name,
             description,
+            label,
           },
         });
-        res.status(201).json(ingredient);
+        res.status(201).json(item);
       } catch (e) {
-        res.status(500).json({ error: 'Failed to create ingredient' });
+        res.status(500).json({ error: 'Failed to create item' });
       }
       break;
     

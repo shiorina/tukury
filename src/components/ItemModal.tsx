@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Button, Modal, Box, Typography, TextField } from '@mui/material';
-import { Ingredient } from '@prisma/client';
+import { Item } from '@prisma/client';
 
-interface IngredientModalProps {
+interface ItemModalProps {
   open: boolean;
   handleClose: () => void;
-  handleSubmit: (ingredientData: { name: string; description?: string }, id?: number) => void;
-  ingredient: Ingredient | null; 
+  handleSubmit: (itemData: { name: string; description?: string; label: string }, id?: number) => void;
+  item: Item | null; 
 }
 
 const style = {
@@ -21,22 +21,25 @@ const style = {
   p: 4,
 };
 
-const IngredientModal = ({ open, handleClose, handleSubmit, ingredient }: IngredientModalProps) => {
+const ItemModal = ({ open, handleClose, handleSubmit, item }: ItemModalProps) => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [label, setLabel] = useState('');
 
   useEffect(() => {
-    if (ingredient) {
-      setName(ingredient.name);
-      setDescription(ingredient.description || '');
+    if (item) {
+      setName(item.name);
+      setDescription(item.description || '');
+      setLabel(item.label);
     } else {
       setName('');
       setDescription('');
+      setLabel('');
     }
-  }, [ingredient]);
+  }, [item]);
 
   const submitAndClose = () => {
-    handleSubmit({ name, description }, ingredient?.id);
+    handleSubmit({ name, description, label }, item?.id);
     handleClose();
   };
 
@@ -49,7 +52,7 @@ const IngredientModal = ({ open, handleClose, handleSubmit, ingredient }: Ingred
     >
       <Box sx={style}>
         <Typography id="modal-modal-title" variant="h6" component="h2">
-          {ingredient ? "材料を編集" : "新しい材料を作成"}
+          {item ? "食材を編集" : "新しい食材を作成"}
         </Typography>
         <TextField
           margin="normal"
@@ -67,6 +70,13 @@ const IngredientModal = ({ open, handleClose, handleSubmit, ingredient }: Ingred
           value={description}
           onChange={(e) => setDescription(e.target.value)}
         />
+        <TextField
+          margin="normal"
+          fullWidth
+          label="表示名"
+          value={label}
+          onChange={(e) => setLabel(e.target.value)}
+        />
         <Button onClick={submitAndClose} variant="contained" sx={{ mt: 2 }}>
           保存
         </Button>
@@ -75,4 +85,4 @@ const IngredientModal = ({ open, handleClose, handleSubmit, ingredient }: Ingred
   );
 };
 
-export default IngredientModal;
+export default ItemModal;

@@ -21,7 +21,7 @@ const Sidebar = () => {
           <ListItemIcon><RecipeIcon /></ListItemIcon>
           <ListItemText primary="レシピ管理" />
         </ListItemButton>
-        <ListItemButton component={Link} href="/admin/ingredients">
+        <ListItemButton component={Link} href="/admin/items">
           <ListItemIcon><IngredientIcon /></ListItemIcon>
           <ListItemText primary="食材管理" />
         </ListItemButton>

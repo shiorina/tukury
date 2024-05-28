@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { GetServerSideProps } from 'next';
-import { PrismaClient, Ingredient } from '@prisma/client';
+import { PrismaClient, Item } from '@prisma/client';
 import axios from 'axios';
 import {
   Typography,
@@ -27,46 +27,46 @@ import { toast } from 'react-toastify';
 const prisma = new PrismaClient();
 
 export const getServerSideProps: GetServerSideProps = async () => {
-  const ingredients: Ingredient[] = await prisma.ingredient.findMany();
-  return { props: { ingredients } };
+  const items: Item[] = await prisma.item.findMany();
+  return { props: { items } };
 };
 
-interface IngredientsPageProps {
-  ingredients: Ingredient[];
+interface ItemsPageProps {
+  items: Item[];
 }
 
-const IngredientsPage = ({ ingredients: initialIngredients }: IngredientsPageProps) => {
-  const [ingredients, setIngredients] = useState<Ingredient[]>(initialIngredients);
+const ItemsPage = ({ items: initialItems }: ItemsPageProps) => {
+  const [items, setItems] = useState<Item[]>(initialItems);
   const [modalOpen, setModalOpen] = useState(false);
-  const [currentIngredient, setCurrentIngredient] = useState<Ingredient | null>(null);
+  const [currentItem, setCurrentItem] = useState<Item | null>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [ingredientToDelete, setIngredientToDelete] = useState<number | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<number | null>(null);
   const [name, setName] = useState<string>('');
   const [description, setDescription] = useState<string>('');
   const [label, setLabel] = useState<string>('');
 
-  const fetchIngredients = async () => {
-    const response = await fetch('/api/private/admin/ingredients');
+  const fetchItems = async () => {
+    const response = await fetch('/api/private/admin/items');
     if (response.ok) {
       const data = await response.json();
-      setIngredients(data);
+      setItems(data);
     } else {
-      toast.error('Failed to fetch ingredients');
+      toast.error('Failed to fetch items');
     }
   };
 
   useEffect(() => {
-    fetchIngredients();
+    fetchItems();
   }, []);
 
-  const handleOpen = (currentIngredient?: Ingredient) => {
-    if (currentIngredient) {
-      setCurrentIngredient(currentIngredient);
-      setName(currentIngredient.name);
-      setDescription(currentIngredient.description || '');
-      setLabel(currentIngredient.label);
+  const handleOpen = (currentItem?: Item) => {
+    if (currentItem) {
+      setCurrentItem(currentItem);
+      setName(currentItem.name);
+      setDescription(currentItem.description || '');
+      setLabel(currentItem.label);
     } else {
-      setCurrentIngredient(null);
+      setCurrentItem(null);
       setName('');
       setDescription('');
       setLabel('');
@@ -77,21 +77,20 @@ const IngredientsPage = ({ ingredients: initialIngredients }: IngredientsPagePro
 
   const handleClose = () => {
     setModalOpen(false);
-    setCurrentIngredient(null);
+    setCurrentItem(null);
     setName('');
     setDescription('');
     setLabel('');
   };
 
-  const postIngredient = async (ingredientData: { name: string; description: string; label: string }) => {
+  const postItem = async (itemData: { name: string; description: string; label: string }) => {
     try {
-      const response = await axios.post('/api/private/admin/ingredients', ingredientData, {
+      const response = await axios.post('/api/private/admin/items', itemData, {
         headers: {
           'Content-Type': 'application/json',
         },
       });
-  
-  
+
       if (response.status === 201) {
         toast.success("新しい食材が登録されました");
         return response.data;
@@ -105,11 +104,10 @@ const IngredientsPage = ({ ingredients: initialIngredients }: IngredientsPagePro
       return null;
     }
   };
-  
 
-  const updateIngredient = async (id: number, ingredientData: { name: string; description: string; label: string }) => {
+  const updateItem = async (id: number, itemData: { name: string; description: string; label: string }) => {
     try {
-      const response = await axios.put(`/api/private/admin/ingredients/${id}`, ingredientData, {
+      const response = await axios.put(`/api/private/admin/items/${id}`, itemData, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -130,42 +128,42 @@ const IngredientsPage = ({ ingredients: initialIngredients }: IngredientsPagePro
   };
 
   const handleSubmit = async () => {
-    if (currentIngredient) {
-      await updateIngredient(currentIngredient.id, { name, description, label });
+    if (currentItem) {
+      await updateItem(currentItem.id, { name, description, label });
     } else {
-      await postIngredient({ name, description, label });
+      await postItem({ name, description, label });
     }
 
-    fetchIngredients();
+    fetchItems();
     handleClose();
   };
 
   const handleDeleteConfirmation = (id: number) => {
-    setIngredientToDelete(id);
+    setItemToDelete(id);
     setDeleteConfirmOpen(true);
   };
 
   const handleDelete = async () => {
-    if (ingredientToDelete == null) return;
+    if (itemToDelete == null) return;
 
-    const response = await fetch(`/api/private/admin/ingredients/${ingredientToDelete}`, {
+    const response = await fetch(`/api/private/admin/items/${itemToDelete}`, {
       method: 'DELETE'
     });
 
     if (response.ok) {
-      fetchIngredients();
+      fetchItems();
       setDeleteConfirmOpen(false);
-      setIngredientToDelete(null);
+      setItemToDelete(null);
       toast.success("食材を削除しました");
     } else {
-      console.error('Failed to delete the ingredient');
+      console.error('Failed to delete the item');
       toast.error("食材の削除に失敗しました");
     }
   };
 
   const handleCancelDelete = () => {
     setDeleteConfirmOpen(false);
-    setIngredientToDelete(null);
+    setItemToDelete(null);
   };
 
   return (
@@ -189,14 +187,14 @@ const IngredientsPage = ({ ingredients: initialIngredients }: IngredientsPagePro
             </TableRow>
           </TableHead>
           <TableBody>
-            {ingredients.map((ingredient) => (
-              <TableRow key={ingredient.id}>
-                <TableCell>{ingredient.name}</TableCell>
-                <TableCell>{ingredient.description}</TableCell>
-                <TableCell>{ingredient.label}</TableCell>
+            {items.map((item) => (
+              <TableRow key={item.id}>
+                <TableCell>{item.name}</TableCell>
+                <TableCell>{item.description}</TableCell>
+                <TableCell>{item.label}</TableCell>
                 <TableCell>
-                  <Button onClick={() => handleOpen(ingredient)} color="primary">編集</Button>
-                  <Button onClick={() => handleDeleteConfirmation(ingredient.id)} color="secondary">削除</Button>
+                  <Button onClick={() => handleOpen(item)} color="primary">編集</Button>
+                  <Button onClick={() => handleDeleteConfirmation(item.id)} color="secondary">削除</Button>
                 </TableCell>
               </TableRow>
             ))}
@@ -212,7 +210,7 @@ const IngredientsPage = ({ ingredients: initialIngredients }: IngredientsPagePro
       >
         <>
           <Typography id="modal-modal-title" variant="h6" component="h2">
-            {currentIngredient ? "食材を編集" : "新しい食材を作成"}
+            {currentItem ? "食材を編集" : "新しい食材を作成"}
           </Typography>
           <TextField
             margin="normal"
@@ -266,4 +264,4 @@ const IngredientsPage = ({ ingredients: initialIngredients }: IngredientsPagePro
   );
 };
 
-export default IngredientsPage;
+export default ItemsPage;

@@ -6,12 +6,6 @@ import { Session } from 'next-auth';
 
 const prisma = new PrismaClient();
 
-interface IngredientPayload {
-  name: string;
-  description: string;
-  label: string;
-}
-
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -25,28 +19,28 @@ export default async function handler(
   switch (req.method) {
     case 'GET':
       try {
-        const ingredients = await prisma.ingredient.findMany();
-        res.status(200).json(ingredients);
+        const items = await prisma.item.findMany();
+        res.status(200).json(items);
       } catch (e: unknown) {
-        console.error("Error retrieving ingredients:", e);
-        res.status(500).json({ error: "食材の取得に失敗しました", details: e instanceof Error ? e.message : 'Unknown error' });
+        console.error("Error retrieving items:", e);
+        res.status(500).json({ error: "アイテムの取得に失敗しました", details: e instanceof Error ? e.message : 'Unknown error' });
       }
       break;
 
     case 'POST':
       try {
-        const { name, description, label }: IngredientPayload = req.body;
-        const ingredient = await prisma.ingredient.create({
+        const { name, description, label } = req.body;
+        const item = await prisma.item.create({
           data: {
             name,
             description,
             label,
           },
         });
-        res.status(201).json(ingredient);
+        res.status(201).json(item);
       } catch (e: unknown) {
-        console.error("Error creating ingredient:", e);
-        res.status(500).json({ error: "食材の作成に失敗しました", details: e instanceof Error ? e.message : 'Unknown error' });
+        console.error("Error creating item:", e);
+        res.status(500).json({ error: "アイテムの作成に失敗しました", details: e instanceof Error ? e.message : 'Unknown error' });
       }
       break;
 
