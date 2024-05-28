@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../auth/[...nextauth]';
+import { authOptions } from '@/pages/api/auth/[...nextauth]'; 
 import { Session } from 'next-auth';
 
 const prisma = new PrismaClient();
@@ -19,27 +19,13 @@ export default async function handler(
   const session: Session | null = await getServerSession(req, res, authOptions);
 
   if (!session || !session.user || !session.user.email) {
-    return res.status(401).json({error: '認証されませんでした'});
+    return res.status(401).json({ error: '認証されませんでした' });
   }
 
   switch (req.method) {
     case 'GET':
       try {
-        const recipes = await prisma.recipe.findMany({
-          select: {
-            id: true,
-            title: true,
-            description: true,
-            steps: true,
-            user: {
-              select: {
-                id: true,
-                username: true,
-                email: true
-              }
-            }
-          }
-        });
+        const recipes = await prisma.recipe.findMany();
         res.status(200).json(recipes);
       } catch (e) {
         console.error("Error retrieving recipes:", e);
@@ -48,14 +34,6 @@ export default async function handler(
       break;
 
     case 'POST':
-      const currentUser = await prisma.user.findUnique({
-        where: {email: session.user.email}
-      });
-  
-      if (!currentUser) {
-        return res.status(404).json({error: "ユーザーが見つかりません"});
-      }
-  
       try {
         const { title, description, steps }: RecipePayload = req.body;
         const recipe = await prisma.recipe.create({
@@ -63,21 +41,7 @@ export default async function handler(
             title,
             description,
             steps,
-            userId: currentUser.id,
           },
-          select: {
-            id: true,
-            title: true,
-            description: true,
-            steps: true,
-            user: {
-              select: {
-                id: true,
-                username: true,
-                email: true
-              }
-            }
-          }
         });
         res.status(201).json(recipe);
       } catch (e) {
@@ -89,6 +53,5 @@ export default async function handler(
     default:
       res.setHeader('Allow', ['GET', 'POST']);
       res.status(405).end(`Method ${req.method} Not Allowed`);
-      break;
   }
 }

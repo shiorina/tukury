@@ -16,41 +16,82 @@ model User {
   @@map(name: "users")
 }
 
+model Store {
+  id            Int              @id @default(autoincrement())
+  name          String
+  url           String?
+  storeProducts StoreProduct[]
+
+  @@map(name: "stores")
+}
+
+model Item {
+  id                Int                @id @default(autoincrement())
+  name              String             @unique
+  label             String
+  description       String?
+  recipes           RecipeItem[]
+  storeProducts     StoreProduct[]
+  productCategories ProductCategory[]  @relation("ItemToProductCategory")
+
+  @@map(name: "items")
+}
+
+model ProductCategory {
+  id      Int     @id @default(autoincrement())
+  item_id Int
+  brand   String
+  unit    String
+  item    Item    @relation(fields: [item_id], references: [id], name: "ItemToProductCategory")
+  storeProducts StoreProduct[]
+
+  @@map(name: "product_categories")
+}
+
+model StoreProduct {
+  id                  Int               @id @default(autoincrement())
+  store_id            Int
+  product_category_id Int
+  item_id             Int
+  item_quantity       Int
+  name                String
+  url                 String?
+  image               String?
+  store               Store             @relation(fields: [store_id], references: [id])
+  productCategory     ProductCategory   @relation(fields: [product_category_id], references: [id])
+  item                Item              @relation(fields: [item_id], references: [id])
+  prices              StoreProductPrice[]
+
+  @@map(name: "store_products")
+}
+
+model StoreProductPrice {
+  id              Int      @id @default(autoincrement())
+  store_product_id Int
+  price           Float
+  recording_date  DateTime
+  storeProduct    StoreProduct @relation(fields: [store_product_id], references: [id])
+
+  @@map(name: "store_product_prices")
+}
+
 model Recipe {
-  id          Int                @id @default(autoincrement())
+  id          Int           @id @default(autoincrement())
   title       String
   description String?
   steps       String
-  ingredients RecipeIngredient[]
+  ingredients RecipeItem[]
 
   @@map(name: "recipes")
 }
 
-model Ingredient {
-  id          Int                @id @default(autoincrement())
-  name        String             @unique
-  description String?
-  label       String
-  recipes     RecipeIngredient[]
+model RecipeItem {
+  id       Int     @id @default(autoincrement())
+  item_id  Int
+  recipe_id Int
+  quantity Int
+  item     Item    @relation(fields: [item_id], references: [id])
+  recipe   Recipe  @relation(fields: [recipe_id], references: [id])
 
-  @@map(name: "ingredients")
-}
-
-model RecipeIngredient {
-  recipeId     Int        @map(name: "recipe_id")
-  ingredientId Int        @map(name: "ingredient_id")
-  quantity     String
-  recipe       Recipe     @relation(fields: [recipeId], references: [id])
-  ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
-
-  @@id([recipeId, ingredientId])
-  @@map(name: "recipe_ingredients")
-}
-
-model Store {
-  id   Int     @id @default(autoincrement())
-  name String
-  url  String?
-
-  @@map(name: "stores")
+  @@map(name: "recipe_items")
 }

@@ -21,9 +21,9 @@ export default async function handler(
 
   switch (req.method) {
     case 'PUT':
-      const { name, description, label }: Prisma.IngredientUpdateInput = req.body;
+      const { name, description, label }: Prisma.ItemUpdateInput = req.body;
       try {
-        const ingredient = await prisma.ingredient.update({
+        const ingredient = await prisma.item.update({
           where: { id },
           data: {
             name,
@@ -40,7 +40,7 @@ export default async function handler(
 
     case 'DELETE':
       try {
-        await prisma.ingredient.delete({
+        await prisma.item.delete({
           where: { id },
         });
         res.status(200).json({ message: 'Ingredient deleted successfully' });
