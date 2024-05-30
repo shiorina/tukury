@@ -1,10 +1,10 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
-
 const prisma = new PrismaClient();
 
 async function main() {
+  console.log('=========== User ===========');
   const password = await bcrypt.hash('password', 10);
 
   const user1 = await prisma.user.create({
@@ -13,7 +13,7 @@ async function main() {
       email: 'test@test.com',
       password: password,
     },
-  })
+  });
 
   const user2 = await prisma.user.create({
     data: {
@@ -21,7 +21,9 @@ async function main() {
       email: 'bob@example.com',
       password: password,
     },
-  })
+  });
+
+  console.log('=========== Store ===========');
 
   // ストアの作成
   await prisma.store.createMany({
@@ -31,21 +33,63 @@ async function main() {
     ],
   });
 
-  // 食材の作成
-  await prisma.item.createMany({
-    data: [
-      { name: 'Item A', label: 'Label A', description: 'Description A' },
-      { name: 'Item B', label: 'Label B', description: 'Description B' },
-    ],
-  });
+  console.log('=========== ProductCategory ===========');
 
-  // 商品区分の作成
-  await prisma.productCategory.createMany({
-    data: [
-      { item_id: 1, brand: 'Brand A', unit: 'kg' },
-      { item_id: 2, brand: 'Brand B', unit: 'liters' },
-    ],
-  });
+  const productCategories = [
+    { itemName: '米', brand: '新潟県産こしひかり(無洗米)', unit: '5kg' },
+    { itemName: '食パン', brand: '天然酵母', unit: '1.5斤' },
+    { itemName: '食パン', brand: 'パスコ 超熟 6枚', unit: '1斤' },
+    { itemName: '卵', brand: '白卵', unit: '10個入り' },
+    { itemName: 'にんじん', brand: 'なし', unit: '2〜3本入1袋' },
+    { itemName: 'にんじん', brand: '有機にんじん', unit: '2〜3本入1袋' },
+    { itemName: 'きゅうり', brand: 'なし', unit: '1本' },
+    { itemName: 'きゅうり', brand: 'なし', unit: '3〜4本入1袋' },
+    { itemName: 'キャベツ', brand: 'なし', unit: '1玉' },
+    { itemName: 'キャベツ', brand: 'なし', unit: '1/2' },
+    { itemName: 'じゃがいも', brand: 'なし', unit: '3〜5玉入1袋' },
+    { itemName: 'じゃがいも', brand: '男爵', unit: '' },
+    { itemName: 'じゃがいも', brand: 'キタアカリ', unit: '' },
+    { itemName: 'じゃがいも', brand: 'メークイン', unit: '' },
+    { itemName: 'にんにく', brand: '青森県産', unit: '1個' },
+    { itemName: 'にんにく', brand: '中国産', unit: '3個1袋' },
+    { itemName: '長ネギ', brand: 'なし', unit: 'バラ1本' },
+    { itemName: '長ネギ', brand: 'なし', unit: '2〜3本入1束' },
+    { itemName: '玉ねぎ', brand: 'なし', unit: 'バラL1個' },
+    { itemName: '玉ねぎ', brand: 'なし', unit: '3〜4玉入1袋' },
+    { itemName: '玉ねぎ', brand: '有機新玉ねぎ', unit: '2〜6玉入1袋' },
+    { itemName: '玉ねぎ', brand: '新玉ねぎ', unit: '2〜3玉入1袋' },
+    { itemName: '豚肉こま', brand: '米国産', unit: '100g当たり' },
+    { itemName: '豚肉こま', brand: '国内産', unit: '100g当たり' },
+    { itemName: '若どりもも肉', brand: '国内産', unit: '100g当たり' },
+    { itemName: '若どりもも肉', brand: '国内産', unit: '2枚 540グラム' },
+    { itemName: '若どりもも肉', brand: 'ブラジル産', unit: '2kg' },
+  ];
+
+  for (const category of productCategories) {
+    let item = await prisma.item.findUnique({
+      where: { name: category.itemName },
+    });
+
+    if (!item) {
+      item = await prisma.item.create({
+        data: {
+          name: category.itemName,
+          label: category.itemName,
+          description: '',
+        },
+      });
+    }
+
+    await prisma.productCategory.create({
+      data: {
+        item_id: item.id,
+        brand: category.brand,
+        unit: category.unit,
+      },
+    });
+  }
+
+  console.log('=========== StoreProduct ===========');
 
   // 商品の作成
   await prisma.storeProduct.createMany({
