@@ -27,6 +27,7 @@ import {
 import CustomModal from '@/components/CustomModal';
 import Layout from '@/components/Layout';
 import { toast } from 'react-toastify';
+import { useRouter } from 'next/router';
 
 const prisma = new PrismaClient();
 
@@ -50,9 +51,10 @@ const ProductCategoryPage = ({ productCategories: initialProductCategories, item
   const [item_id, setItemId] = useState<number>(0);
   const [brand, setBrand] = useState<string>('');
   const [unit, setUnit] = useState<string>('');
+  const router = useRouter();
 
   const fetchProductCategories = async () => {
-    const response = await fetch('/api/private/admin/productCategories');
+    const response = await fetch('/api/private/admin/product-categories');
     if (response.ok) {
       const data = await response.json();
       setProductCategories(data);
@@ -91,7 +93,7 @@ const ProductCategoryPage = ({ productCategories: initialProductCategories, item
 
   const postProductCategory = async (productCategoryData: { item_id: number; brand: string; unit: string }) => {
     try {
-      const response = await axios.post('/api/private/admin/productCategories', productCategoryData, {
+      const response = await axios.post('/api/private/admin/product-categories', productCategoryData, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -113,7 +115,7 @@ const ProductCategoryPage = ({ productCategories: initialProductCategories, item
 
   const updateProductCategory = async (id: number, productCategoryData: { item_id: number; brand: string; unit: string }) => {
     try {
-      const response = await axios.put(`/api/private/admin/productCategories/${id}`, productCategoryData, {
+      const response = await axios.put(`/api/private/admin/product-categories/${id}`, productCategoryData, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -152,7 +154,7 @@ const ProductCategoryPage = ({ productCategories: initialProductCategories, item
   const handleDelete = async () => {
     if (productCategoryToDelete == null) return;
 
-    const response = await fetch(`/api/private/admin/productCategories/${productCategoryToDelete}`, {
+    const response = await fetch(`/api/private/admin/product-categories/${productCategoryToDelete}`, {
       method: 'DELETE'
     });
 
@@ -172,15 +174,24 @@ const ProductCategoryPage = ({ productCategories: initialProductCategories, item
     setProductCategoryToDelete(null);
   };
 
+  const handleCsvUpload = () => {
+    router.push('/admin/product-categories/upload');
+  };
+
   return (
     <Layout>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <Typography variant="h4" component="h2">
           商品区分一覧
         </Typography>
-        <Button onClick={() => handleOpen()} variant="contained" color="primary">
-          新規作成
-        </Button>
+        <Box>
+          <Button onClick={handleCsvUpload} variant="outlined" color="primary" sx={{ mr: 2 }}>
+            CSVエクスポート
+          </Button>
+          <Button onClick={() => handleOpen()} variant="contained" color="primary">
+            新規作成
+          </Button>
+        </Box>
       </Box>
       <TableContainer component={Paper}>
         <Table aria-label="商品区分のテーブル">

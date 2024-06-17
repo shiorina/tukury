@@ -26,7 +26,7 @@ const Sidebar = () => {
           <ListItemIcon><IngredientIcon /></ListItemIcon>
           <ListItemText primary="食材管理" />
         </ListItem>
-        <ListItem button component={Link} href="/admin/productCategories">
+        <ListItem button component={Link} href="/admin/product-categories">
           <ListItemIcon><CategoryIcon /></ListItemIcon>
           <ListItemText primary="商品区分管理" />
         </ListItem>
