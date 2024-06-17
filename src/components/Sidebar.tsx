@@ -30,6 +30,12 @@ const Sidebar = () => {
           <ListItemIcon><CategoryIcon /></ListItemIcon>
           <ListItemText primary="商品区分管理" />
         </ListItem>
+        <Link href="/admin/store-products" passHref>
+          <ListItem>
+            <ListItemIcon><StoreIcon /></ListItemIcon>
+            <ListItemText primary="店舗取扱商品" />
+          </ListItem>
+        </Link>
       </List>
     </div>
   );
