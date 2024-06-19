@@ -84,7 +84,7 @@ export default async function handler(
 
               const productCategory = await prisma.productCategory.create({
                 data: {
-                  item_id: item.id,
+                  itemId: item.id,
                   brand,
                   unit,
                 },
@@ -92,10 +92,10 @@ export default async function handler(
 
               await prisma.storeProduct.create({
                 data: {
-                  item_id: item.id,
-                  store_id: store.id,
-                  product_category_id: productCategory.id,
-                  item_quantity: 1,
+                  itemId: item.id,
+                  storeId: store.id,
+                  productCategoryId: productCategory.id,
+                  itemQuantity: 1,
                   name: '(仮)',
                   url: url
                 }

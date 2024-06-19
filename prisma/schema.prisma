@@ -28,7 +28,7 @@ model Store {
 model Item {
   id                Int                @id @default(autoincrement())
   name              String             @unique
-  label             String
+  displayName       String
   description       String?
   recipes           RecipeItem[]
   storeProducts     StoreProduct[]
@@ -39,10 +39,10 @@ model Item {
 
 model ProductCategory {
   id      Int     @id @default(autoincrement())
-  item_id Int
+  itemId  Int
   brand   String
   unit    String
-  item    Item    @relation(fields: [item_id], references: [id], name: "ItemToProductCategory")
+  item    Item    @relation(fields: [itemId], references: [id], name: "ItemToProductCategory")
   storeProducts StoreProduct[]
 
   @@map(name: "product_categories")
@@ -50,16 +50,16 @@ model ProductCategory {
 
 model StoreProduct {
   id                  Int               @id @default(autoincrement())
-  store_id            Int
-  product_category_id Int
-  item_id             Int
-  item_quantity       Int
+  storeId            Int
+  productCategoryId  Int
+  itemId             Int
+  itemQuantity       Int
   name                String
   url                 String?
   image               String?
-  store               Store             @relation(fields: [store_id], references: [id])
-  productCategory     ProductCategory   @relation(fields: [product_category_id], references: [id])
-  item                Item              @relation(fields: [item_id], references: [id])
+  store               Store             @relation(fields: [storeId], references: [id])
+  productCategory     ProductCategory   @relation(fields: [productCategoryId], references: [id])
+  item                Item              @relation(fields: [itemId], references: [id])
   prices              StoreProductPrice[]
 
   @@map(name: "store_products")
@@ -67,10 +67,10 @@ model StoreProduct {
 
 model StoreProductPrice {
   id              Int      @id @default(autoincrement())
-  store_product_id Int
+  storeProductId  Int
   price           Float
-  recording_date  DateTime
-  storeProduct    StoreProduct @relation(fields: [store_product_id], references: [id])
+  recordingDate   DateTime
+  storeProduct    StoreProduct @relation(fields: [storeProductId], references: [id])
 
   @@map(name: "store_product_prices")
 }
@@ -86,12 +86,12 @@ model Recipe {
 }
 
 model RecipeItem {
-  id       Int     @id @default(autoincrement())
-  item_id  Int
-  recipe_id Int
-  quantity Int
-  item     Item    @relation(fields: [item_id], references: [id])
-  recipe   Recipe  @relation(fields: [recipe_id], references: [id])
+  id        Int     @id @default(autoincrement())
+  itemId    Int
+  recipeId  Int
+  quantity  Int
+  item      Item    @relation(fields: [itemId], references: [id])
+  recipe    Recipe  @relation(fields: [recipeId], references: [id])
 
   @@map(name: "recipe_items")
 }

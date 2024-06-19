@@ -29,12 +29,12 @@ export default async function handler(
 
     case 'POST':
       try {
-        const { name, description, label } = req.body;
+        const { name, description, displayName } = req.body;
         const item = await prisma.item.create({
           data: {
             name,
             description,
-            label,
+            displayName,
           },
         });
         res.status(201).json(item);

@@ -1,13 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../../../../../pages/api/auth/[...nextauth]';
+import { authOptions } from '../../../auth/[...nextauth]';
 import { Session } from 'next-auth';
 
 const prisma = new PrismaClient();
 
 interface ProductCategoryPayload {
-  item_id: number;
+  itemId: number;
   brand: string;
   unit: string;
 }
@@ -35,10 +35,10 @@ export default async function handler(
 
     case 'POST':
       try {
-        const { item_id, brand, unit }: ProductCategoryPayload = req.body;
+        const { itemId, brand, unit }: ProductCategoryPayload = req.body;
         const productCategory = await prisma.productCategory.create({
           data: {
-            item_id,
+            itemId,
             brand,
             unit,
           },

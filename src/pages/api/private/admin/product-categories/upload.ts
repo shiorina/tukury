@@ -53,8 +53,8 @@ export default async function handler(
         .on('end', async () => {
           try {
             for (const row of results) {
-              const { itemName, brand, unit } = row;
-
+              const { itemName, itemDisplayName, brand, unit } = row;
+              
               let item = await prisma.item.findUnique({
                 where: { name: itemName },
               });
@@ -63,7 +63,7 @@ export default async function handler(
                 item = await prisma.item.create({
                   data: {
                     name: itemName,
-                    label: itemName,
+                    displayName: itemDisplayName,
                     description: '',
                   },
                 });
@@ -71,7 +71,7 @@ export default async function handler(
 
               await prisma.productCategory.create({
                 data: {
-                  item_id: item.id,
+                  itemId: item.id,
                   brand,
                   unit,
                 },
