@@ -29,6 +29,7 @@ import Layout from '@/components/Layout';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import Tooltip from '@mui/material/Tooltip';
 
 const prisma = new PrismaClient();
 
@@ -189,6 +190,12 @@ const ProductCategoryPage = (props: Props) => {
   //   setProductCategoryToDelete(null);
   // };
 
+  const shortenURL = (url: string, maxLength: number) => {
+    if (url.length <= maxLength) return url;
+    return url.slice(0, maxLength) + '...';
+  };
+  
+
   return (
     <Layout>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
@@ -227,8 +234,15 @@ const ProductCategoryPage = (props: Props) => {
                 <TableCell>{storeProduct.item.name}</TableCell>
                 <TableCell>{storeProduct.productCategory.brand}</TableCell>
                 <TableCell>{storeProduct.productCategory.unit}</TableCell>
-                <TableCell>{storeProduct.url}</TableCell>
-
+                <TableCell>
+                  {storeProduct.url && (
+                    <Tooltip title={storeProduct.url}>
+                      <a href={storeProduct.url} target="_blank" rel="noopener noreferrer">
+                        {shortenURL(storeProduct.url, 20)}
+                      </a>
+                    </Tooltip>
+                  )}
+                </TableCell>
                 {/* <TableCell>
                   <Button onClick={() => handleOpen(productCategory)} color="primary">編集</Button>
                   <Button onClick={() => handleDeleteConfirmation(productCategory.id)} color="secondary">削除</Button>

@@ -21,14 +21,14 @@ export default async function handler(
 
   switch (req.method) {
     case 'PUT':
-      const { name, description, label }: Prisma.ItemUpdateInput = req.body;
+      const { name, description, displayName }: Prisma.ItemUpdateInput = req.body;
       try {
         const ingredient = await prisma.item.update({
           where: { id },
           data: {
             name,
             description,
-            label,
+            displayName,
           },
         });
         res.status(200).json({ message: 'Ingredient updated successfully', ingredient });

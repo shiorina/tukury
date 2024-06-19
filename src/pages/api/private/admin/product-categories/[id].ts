@@ -11,12 +11,12 @@ export default async function handler(
 
   switch (req.method) {
     case 'PUT':
-      const { item_id, brand, unit }: { item_id: number, brand: string, unit: string } = req.body;
+      const { itemId, brand, unit }: { itemId: number, brand: string, unit: string } = req.body;
       try {
         const productCategory = await prisma.productCategory.update({
           where: { id: parseInt(productCategoryId as string) },
           data: {
-            item_id,
+            itemId,
             brand,
             unit,
           },

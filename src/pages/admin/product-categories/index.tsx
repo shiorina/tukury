@@ -48,7 +48,7 @@ const ProductCategoryPage = ({ productCategories: initialProductCategories, item
   const [currentProductCategory, setCurrentProductCategory] = useState<ProductCategory | null>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [productCategoryToDelete, setProductCategoryToDelete] = useState<number | null>(null);
-  const [item_id, setItemId] = useState<number>(0);
+  const [itemId, setItemId] = useState<number>(0);
   const [brand, setBrand] = useState<string>('');
   const [unit, setUnit] = useState<string>('');
   const router = useRouter();
@@ -70,7 +70,7 @@ const ProductCategoryPage = ({ productCategories: initialProductCategories, item
   const handleOpen = (currentProductCategory?: ProductCategory) => {
     if (currentProductCategory) {
       setCurrentProductCategory(currentProductCategory);
-      setItemId(currentProductCategory.item_id);
+      setItemId(currentProductCategory.itemId);
       setBrand(currentProductCategory.brand);
       setUnit(currentProductCategory.unit);
     } else {
@@ -91,7 +91,7 @@ const ProductCategoryPage = ({ productCategories: initialProductCategories, item
     setUnit('');
   };
 
-  const postProductCategory = async (productCategoryData: { item_id: number; brand: string; unit: string }) => {
+  const postProductCategory = async (productCategoryData: { itemId: number; brand: string; unit: string }) => {
     try {
       const response = await axios.post('/api/private/admin/product-categories', productCategoryData, {
         headers: {
@@ -113,7 +113,7 @@ const ProductCategoryPage = ({ productCategories: initialProductCategories, item
     }
   };
 
-  const updateProductCategory = async (id: number, productCategoryData: { item_id: number; brand: string; unit: string }) => {
+  const updateProductCategory = async (id: number, productCategoryData: { itemId: number; brand: string; unit: string }) => {
     try {
       const response = await axios.put(`/api/private/admin/product-categories/${id}`, productCategoryData, {
         headers: {
@@ -137,9 +137,9 @@ const ProductCategoryPage = ({ productCategories: initialProductCategories, item
 
   const handleSubmit = async () => {
     if (currentProductCategory) {
-      await updateProductCategory(currentProductCategory.id, { item_id, brand, unit });
+      await updateProductCategory(currentProductCategory.id, { itemId, brand, unit });
     } else {
-      await postProductCategory({ item_id, brand, unit });
+      await postProductCategory({ itemId, brand, unit });
     }
 
     fetchProductCategories();
@@ -208,7 +208,7 @@ const ProductCategoryPage = ({ productCategories: initialProductCategories, item
             {productCategories.map((productCategory) => (
               <TableRow key={productCategory.id}>
                 <TableCell>{productCategory.id}</TableCell>
-                <TableCell>{items.find(item => item.id === productCategory.item_id)?.name}</TableCell>
+                <TableCell>{items.find(item => item.id === productCategory.itemId)?.name}</TableCell>
                 <TableCell>{productCategory.brand}</TableCell>
                 <TableCell>{productCategory.unit}</TableCell>
                 <TableCell>
@@ -235,7 +235,7 @@ const ProductCategoryPage = ({ productCategories: initialProductCategories, item
             <InputLabel id="item-select-label">食材</InputLabel>
             <Select
               labelId="item-select-label"
-              value={item_id}
+              value={itemId}
               onChange={(e) => setItemId(e.target.value as number)}
               label="食材"
             >
