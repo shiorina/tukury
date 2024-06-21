@@ -63,7 +63,7 @@ export default async function handler(
                 item = await prisma.item.create({
                   data: {
                     name: itemName,
-                    label: itemName,
+                    displayName: itemName,
                     description: '',
                   },
                 });
