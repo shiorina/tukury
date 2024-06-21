@@ -64,7 +64,7 @@ const ItemsPage = ({ items: initialItems }: ItemsPageProps) => {
       setCurrentItem(currentItem);
       setName(currentItem.name);
       setDescription(currentItem.description || '');
-      setLabel(currentItem.label);
+      setLabel(currentItem.displayName);
     } else {
       setCurrentItem(null);
       setName('');
@@ -191,7 +191,7 @@ const ItemsPage = ({ items: initialItems }: ItemsPageProps) => {
               <TableRow key={item.id}>
                 <TableCell>{item.name}</TableCell>
                 <TableCell>{item.description}</TableCell>
-                <TableCell>{item.label}</TableCell>
+                <TableCell>{item.displayName}</TableCell>
                 <TableCell>
                   <Button onClick={() => handleOpen(item)} color="primary">編集</Button>
                   <Button onClick={() => handleDeleteConfirmation(item.id)} color="secondary">削除</Button>

@@ -28,7 +28,7 @@ model Store {
 model Item {
   id                Int                @id @default(autoincrement())
   name              String             @unique
-  displayName       String
+  displayName       String             @map("display_name")
   description       String?
   recipes           RecipeItem[]
   storeProducts     StoreProduct[]
@@ -39,7 +39,7 @@ model Item {
 
 model ProductCategory {
   id      Int     @id @default(autoincrement())
-  itemId  Int
+  itemId  Int     @map("item_id")
   brand   String
   unit    String
   item    Item    @relation(fields: [itemId], references: [id], name: "ItemToProductCategory")
@@ -50,13 +50,13 @@ model ProductCategory {
 
 model StoreProduct {
   id                  Int               @id @default(autoincrement())
-  storeId            Int
-  productCategoryId  Int
-  itemId             Int
-  itemQuantity       Int
+  storeId            Int                @map("store_id")
+  productCategoryId  Int                @map("product_category_id")
+  itemId             Int                @map("item_id")
+  itemQuantity       Int                @map("item_quantity")
   name                String
   url                 String?
-  image               String?
+  imageUrl            String?           @map("image_url")
   store               Store             @relation(fields: [storeId], references: [id])
   productCategory     ProductCategory   @relation(fields: [productCategoryId], references: [id])
   item                Item              @relation(fields: [itemId], references: [id])
@@ -67,9 +67,9 @@ model StoreProduct {
 
 model StoreProductPrice {
   id              Int      @id @default(autoincrement())
-  storeProductId  Int
+  storeProductId  Int      @map("store_product_id")
   price           Float
-  recordingDate   DateTime
+  recordingDate   DateTime @map("recording_date")
   storeProduct    StoreProduct @relation(fields: [storeProductId], references: [id])
 
   @@map(name: "store_product_prices")
@@ -87,8 +87,8 @@ model Recipe {
 
 model RecipeItem {
   id        Int     @id @default(autoincrement())
-  itemId    Int
-  recipeId  Int
+  itemId    Int     @map("item_id")
+  recipeId  Int     @map("recipe_id")
   quantity  Int
   item      Item    @relation(fields: [itemId], references: [id])
   recipe    Recipe  @relation(fields: [recipeId], references: [id])
