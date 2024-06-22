@@ -229,6 +229,11 @@ const ProductCategoryPage = (props: Props) => {
           <TableBody>
             {storeProducts.map((storeProduct) => (
               <TableRow key={storeProduct.id}>
+                <TableCell>
+                  <Link href={`/admin/store-products/${storeProduct.id}`} passHref>
+                    {storeProduct.id}
+                  </Link>
+                </TableCell>
                 <TableCell>{storeProduct.id}</TableCell>
                 <TableCell>{storeProduct.store.name}</TableCell>
                 <TableCell>{storeProduct.item.name}</TableCell>
