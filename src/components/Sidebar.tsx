@@ -33,7 +33,13 @@ const Sidebar = () => {
         <Link href="/admin/store-products" passHref>
           <ListItem>
             <ListItemIcon><StoreIcon /></ListItemIcon>
-            <ListItemText primary="店舗取扱商品" />
+            <ListItemText primary="ストア取扱商品" />
+          </ListItem>
+        </Link>
+        <Link href="/admin/store-product-prices" passHref>
+          <ListItem>
+            <ListItemIcon><StoreIcon /></ListItemIcon>
+            <ListItemText primary="商品価格" />
           </ListItem>
         </Link>
       </List>
