@@ -16,38 +16,20 @@ type StoreProductPriceWithRelations = StoreProductPrice & {
   };
 }
 
-export const getServerSideProps: GetServerSideProps = async () => {
-  const storeProductPrices: StoreProductPriceWithRelations[] = await prisma.storeProductPrice.findMany({
-    include: {
-      storeProduct: {
-        include: {
-          item: true,
-          store: true,
-          productCategory: true
-        }
-      }
-    }
-  });
-
-  // recordingDate を文字列に変換
-  const serializedStoreProductPrices = storeProductPrices.map(price => ({
-    ...price,
-    recordingDate: price.recordingDate.toISOString(),
-  }));
-
-  return {
-    props: {
-      storeProductPrices: serializedStoreProductPrices
-    }
-  };
-};
+type StoreProductWithPrice = StoreProduct & {
+  prices: StoreProductPrice[];
+}
 
 interface Props {
   storeProductPrices: StoreProductPriceWithRelations[];
+  storeProducts: StoreProductWithPrice[];
 }
 
-const StoreProductPricesPage = ({ storeProductPrices }: Props) => {
-  const [prices, setPrices] = useState<StoreProductPriceWithRelations[]>(storeProductPrices);
+const StoreProductPricesPage = (props: Props) => {
+  const [prices, setPrices] = useState<StoreProductPriceWithRelations[]>(props.storeProductPrices);
+  const [storeProducts, setStoreProducts] = useState(props.storeProducts);
+
+  console.log(props);
 
   const handleFetchAllPrices = async () => {
     try {
@@ -90,6 +72,54 @@ const StoreProductPricesPage = ({ storeProductPrices }: Props) => {
           一括価格取得
         </Button>
       </Box>
+
+
+      {storeProducts.map((storeProduct) => (
+        <Box key={storeProduct.id} mb={4}>
+          <Typography variant="h6" component="h2">
+            {storeProduct.name}
+          </Typography>
+
+          {storeProduct.url && (
+            <Typography variant="subtitle1">
+              URL: 
+              <Tooltip title={storeProduct.url}>
+                <a href={storeProduct.url} target="_blank" rel="noopener noreferrer">
+                  {shortenURL(storeProduct.url, 30)}
+                </a>
+              </Tooltip>
+            </Typography>
+          )}
+
+          <TableContainer component={Paper}>
+            <Table aria-label={`${storeProduct.name}の価格情報のテーブル`}>
+              <TableHead>
+                <TableRow>
+                  <TableCell>ID</TableCell>
+                  <TableCell>価格</TableCell>
+                  <TableCell>記録日</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {storeProduct.prices.map((price) => (
+                  <TableRow key={price.id}>
+                    <TableCell>{price.id}</TableCell>
+                    <TableCell>{price.price}円</TableCell>
+                    <TableCell>{new Date(price.recordingDate).toLocaleDateString()}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+      ))}
+
+      <hr />
+
+      <hr />
+
+
+
       {Object.entries(groupedPrices).map(([key, priceList]) => {
         const [productName, productUrl] = key.split('_');
         // 記録日で重複を除外
@@ -146,3 +176,49 @@ const StoreProductPricesPage = ({ storeProductPrices }: Props) => {
 };
 
 export default StoreProductPricesPage;
+
+export const getServerSideProps: GetServerSideProps = async () => {
+  const storeProducts: StoreProductWithPrice[] = await prisma.storeProduct.findMany({
+    include: {
+      prices: true
+    }
+  });
+
+
+  const storeProductPrices: StoreProductPriceWithRelations[] = await prisma.storeProductPrice.findMany({
+    include: {
+      storeProduct: {
+        include: {
+          item: true,
+          store: true,
+          productCategory: true,
+        }
+      }
+    }
+  });
+
+  // recordingDate を文字列に変換
+  const serializedStoreProductPrices = storeProductPrices.map(price => ({
+    ...price,
+    recordingDate: price.recordingDate.toISOString(),
+  }));
+
+  const serializedStoreProducts = storeProducts.map((storeProduct) => {
+    const serializedPrices = storeProduct.prices.map((price) => ({
+      ...price,
+      recordingDate: price.recordingDate.toISOString()
+    }));
+
+    return {
+      ...storeProduct,
+      prices: serializedPrices
+    }
+  });
+
+  return {
+    props: {
+      storeProductPrices: serializedStoreProductPrices,
+      storeProducts: serializedStoreProducts
+    }
+  };
+};
