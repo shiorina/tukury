@@ -29,8 +29,6 @@ const StoreProductPricesPage = (props: Props) => {
   const [prices, setPrices] = useState<StoreProductPriceWithRelations[]>(props.storeProductPrices);
   const [storeProducts, setStoreProducts] = useState(props.storeProducts);
 
-  console.log(props);
-
   const handleFetchAllPrices = async () => {
     try {
       const response = await axios.get('/api/private/admin/store-product-prices/fetch-all-prices');
@@ -73,7 +71,6 @@ const StoreProductPricesPage = (props: Props) => {
         </Button>
       </Box>
 
-
       {storeProducts.map((storeProduct) => (
         <Box key={storeProduct.id} mb={4}>
           <Typography variant="h6" component="h2">
@@ -101,13 +98,15 @@ const StoreProductPricesPage = (props: Props) => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {storeProduct.prices.map((price) => (
-                  <TableRow key={price.id}>
-                    <TableCell>{price.id}</TableCell>
-                    <TableCell>{price.price}円</TableCell>
-                    <TableCell>{new Date(price.recordingDate).toLocaleDateString()}</TableCell>
-                  </TableRow>
-                ))}
+                {storeProduct.prices
+                  .sort((a, b) => new Date(b.recordingDate).getTime() - new Date(a.recordingDate).getTime())
+                  .map((price) => (
+                    <TableRow key={price.id}>
+                      <TableCell>{price.id}</TableCell>
+                      <TableCell>{price.price}円</TableCell>
+                      <TableCell>{new Date(price.recordingDate).toLocaleDateString()}</TableCell>
+                    </TableRow>
+                  ))}
               </TableBody>
             </Table>
           </TableContainer>
@@ -115,10 +114,6 @@ const StoreProductPricesPage = (props: Props) => {
       ))}
 
       <hr />
-
-      <hr />
-
-
 
       {Object.entries(groupedPrices).map(([key, priceList]) => {
         const [productName, productUrl] = key.split('_');
@@ -157,7 +152,7 @@ const StoreProductPricesPage = (props: Props) => {
                 </TableHead>
                 <TableBody>
                   {Object.values(uniquePrices)
-                    .sort((a, b) => new Date(a.recordingDate).getTime() - new Date(b.recordingDate).getTime())
+                    .sort((a, b) => new Date(b.recordingDate).getTime() - new Date(a.recordingDate).getTime())
                     .map(price => (
                       <TableRow key={price.id}>
                         <TableCell>{price.id}</TableCell>
@@ -183,7 +178,6 @@ export const getServerSideProps: GetServerSideProps = async () => {
       prices: true
     }
   });
-
 
   const storeProductPrices: StoreProductPriceWithRelations[] = await prisma.storeProductPrice.findMany({
     include: {
