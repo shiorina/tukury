@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, ChangeEvent } from 'react';
 import { GetServerSideProps } from 'next';
 import { PrismaClient, StoreProduct, Item, Store, ProductCategory } from '@prisma/client';
 import axios from 'axios';
@@ -23,13 +23,13 @@ import {
   MenuItem,
   InputLabel,
   FormControl,
+  Tooltip
 } from '@mui/material';
-import CustomModal from '@/components/CustomModal';
+import { SelectChangeEvent } from '@mui/material/Select';
 import Layout from '@/components/Layout';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import Tooltip from '@mui/material/Tooltip';
 
 const prisma = new PrismaClient();
 
@@ -48,153 +48,86 @@ export const getServerSideProps: GetServerSideProps = async () => {
     }
   });
 
+  const items: Item[] = await prisma.item.findMany();
+  const stores: Store[] = await prisma.store.findMany();
+  const productCategories: ProductCategory[] = await prisma.productCategory.findMany();
 
-
-  console.log(storeProducts);
-  return { props: { storeProducts } };
+  return { props: { storeProducts, items, stores, productCategories } };
 };
 
 interface Props {
   storeProducts: StoreProductWithRelation[];
+  items: Item[];
+  stores: Store[];
+  productCategories: ProductCategory[];
 }
 
 const ProductCategoryPage = (props: Props) => {
-  const [storeProducts, setStoreProducts] = useState<StoreProductWithRelation[]>(props.storeProducts);
+  const { storeProducts, items, stores, productCategories } = props;
+  const [storeProductList, setStoreProductList] = useState<StoreProductWithRelation[]>(storeProducts);
   const [modalOpen, setModalOpen] = useState(false);
-  // const [currentProductCategory, setCurrentProductCategory] = useState<ProductCategory | null>(null);
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [productCategoryToDelete, setProductCategoryToDelete] = useState<number | null>(null);
-  const [item_id, setItemId] = useState<number>(0);
-  const [brand, setBrand] = useState<string>('');
-  const [unit, setUnit] = useState<string>('');
-  const router = useRouter();
+  const [newStoreProduct, setNewStoreProduct] = useState({
+    name: '',
+    storeId: '',
+    itemId: '',
+    productCategoryId: '',
+    itemQuantity: 0,
+    url: '',
+    imageUrl: '',
+  });
 
-  // const fetchProductCategories = async () => {
-  //   const response = await fetch('/api/private/admin/product-categories');
-  //   if (response.ok) {
-  //     const data = await response.json();
-  //     setProductCategories(data);
-  //   } else {
-  //     toast.error('Failed to fetch product categories');
-  //   }
-  // };
+  const handleOpen = () => {
+    setModalOpen(true);
+  };
 
-  // useEffect(() => {
-  //   fetchProductCategories();
-  // }, []);
+  const handleClose = () => {
+    setModalOpen(false);
+    setNewStoreProduct({
+      name: '',
+      storeId: '',
+      itemId: '',
+      productCategoryId: '',
+      itemQuantity: 0,
+      url: '',
+      imageUrl: '',
+    });
+  };
 
-  // const handleOpen = (currentProductCategory?: ProductCategory) => {
-  //   if (currentProductCategory) {
-  //     setCurrentProductCategory(currentProductCategory);
-  //     setItemId(currentProductCategory.item_id);
-  //     setBrand(currentProductCategory.brand);
-  //     setUnit(currentProductCategory.unit);
-  //   } else {
-  //     setCurrentProductCategory(null);
-  //     setItemId(0);
-  //     setBrand('');
-  //     setUnit('');
-  //   }
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setNewStoreProduct({ ...newStoreProduct, [name]: value });
+  };
 
-  //   setModalOpen(true);
-  // };
+  const handleSelectChange = (e: SelectChangeEvent<string>) => {
+    const { name, value } = e.target;
+    setNewStoreProduct({ ...newStoreProduct, [name as string]: value });
+  };
 
-  // const handleClose = () => {
-  //   setModalOpen(false);
-  //   setCurrentProductCategory(null);
-  //   setItemId(0);
-  //   setBrand('');
-  //   setUnit('');
-  // };
-
-  const postProductCategory = async (productCategoryData: { item_id: number; brand: string; unit: string }) => {
+  const handleSubmit = async () => {
     try {
-      const response = await axios.post('/api/private/admin/product-categories', productCategoryData, {
+      const response = await axios.post('/api/private/admin/store-products', newStoreProduct, {
         headers: {
           'Content-Type': 'application/json',
         },
       });
 
       if (response.status === 201) {
-        toast.success("新しい商品区分が登録されました");
-        return response.data;
+        toast.success('新しい店舗取扱商品が登録されました');
+        setStoreProductList([...storeProductList, response.data]);
+        handleClose();
       } else {
-        toast.error("商品区分の登録に失敗しました");
-        return null;
+        toast.error('店舗取扱商品の登録に失敗しました');
       }
     } catch (error) {
       console.error('Error during POST request:', error);
-      toast.error("商品区分の登録に失敗しました");
-      return null;
+      toast.error('店舗取扱商品の登録に失敗しました');
     }
   };
-
-  const updateProductCategory = async (id: number, productCategoryData: { item_id: number; brand: string; unit: string }) => {
-    try {
-      const response = await axios.put(`/api/private/admin/product-categories/${id}`, productCategoryData, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.status === 200) {
-        toast.success("商品区分が更新されました");
-        return response.data;
-      } else {
-        toast.error("商品区分の更新に失敗しました");
-        return null;
-      }
-    } catch (error: unknown) {
-      console.error('Error during PUT request:', error);
-      toast.error("商品区分の更新に失敗しました");
-      return null;
-    }
-  };
-
-  // const handleSubmit = async () => {
-  //   if (currentProductCategory) {
-  //     await updateProductCategory(currentProductCategory.id, { item_id, brand, unit });
-  //   } else {
-  //     await postProductCategory({ item_id, brand, unit });
-  //   }
-
-  //   fetchProductCategories();
-  //   handleClose();
-  // };
-
-  // const handleDeleteConfirmation = (id: number) => {
-  //   setProductCategoryToDelete(id);
-  //   setDeleteConfirmOpen(true);
-  // };
-
-  // const handleDelete = async () => {
-  //   if (productCategoryToDelete == null) return;
-
-  //   const response = await fetch(`/api/private/admin/product-categories/${productCategoryToDelete}`, {
-  //     method: 'DELETE'
-  //   });
-
-  //   if (response.ok) {
-  //     fetchProductCategories();
-  //     setDeleteConfirmOpen(false);
-  //     setProductCategoryToDelete(null);
-  //     toast.success("商品区分を削除しました");
-  //   } else {
-  //     console.error('Failed to delete the product category');
-  //     toast.error("商品区分の削除に失敗しました");
-  //   }
-  // };
-
-  // const handleCancelDelete = () => {
-  //   setDeleteConfirmOpen(false);
-  //   setProductCategoryToDelete(null);
-  // };
 
   const shortenURL = (url: string, maxLength: number) => {
     if (url.length <= maxLength) return url;
     return url.slice(0, maxLength) + '...';
   };
-  
 
   return (
     <Layout>
@@ -208,10 +141,9 @@ const ProductCategoryPage = (props: Props) => {
               CSVインポート
             </Button>
           </Link>
-          
-          {/* <Button onClick={() => handleOpen()} variant="contained" color="primary">
+          <Button onClick={handleOpen} variant="contained" color="primary">
             新規作成
-          </Button> */}
+          </Button>
         </Box>
       </Box>
       <TableContainer component={Paper}>
@@ -219,6 +151,7 @@ const ProductCategoryPage = (props: Props) => {
           <TableHead>
             <TableRow>
               <TableCell>ID</TableCell>
+              <TableCell>商品名</TableCell>
               <TableCell>ストア名</TableCell>
               <TableCell>食材名</TableCell>
               <TableCell>銘柄</TableCell>
@@ -227,18 +160,22 @@ const ProductCategoryPage = (props: Props) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {storeProducts.map((storeProduct) => (
+            {storeProductList.map((storeProduct) => (
               <TableRow key={storeProduct.id}>
                 <TableCell>
                   <Link href={`/admin/store-products/${storeProduct.id}`} passHref>
                     {storeProduct.id}
                   </Link>
                 </TableCell>
-                <TableCell>{storeProduct.id}</TableCell>
-                <TableCell>{storeProduct.store.name}</TableCell>
-                <TableCell>{storeProduct.item.name}</TableCell>
-                <TableCell>{storeProduct.productCategory.brand}</TableCell>
-                <TableCell>{storeProduct.productCategory.unit}</TableCell>
+                <TableCell>
+                  <Typography noWrap sx={{ whiteSpace: 'pre-line', maxHeight: '3em', overflow: 'hidden' }}>
+                    {storeProduct.name}
+                  </Typography>
+                </TableCell>
+                <TableCell>{storeProduct.store?.name}</TableCell>
+                <TableCell>{storeProduct.item?.name}</TableCell>
+                <TableCell>{storeProduct.productCategory?.brand}</TableCell>
+                <TableCell>{storeProduct.productCategory?.unit}</TableCell>
                 <TableCell>
                   {storeProduct.url && (
                     <Tooltip title={storeProduct.url}>
@@ -248,82 +185,113 @@ const ProductCategoryPage = (props: Props) => {
                     </Tooltip>
                   )}
                 </TableCell>
-                {/* <TableCell>
-                  <Button onClick={() => handleOpen(productCategory)} color="primary">編集</Button>
-                  <Button onClick={() => handleDeleteConfirmation(productCategory.id)} color="secondary">削除</Button>
-                </TableCell> */}
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
 
-      {/* <CustomModal
-        open={modalOpen}
-        onClose={handleClose}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-      >
-        <>
-          <Typography id="modal-modal-title" variant="h6" component="h2">
-            {currentProductCategory ? "商品区分を編集" : "新しい商品区分を作成"}
-          </Typography>
-          <FormControl fullWidth margin="normal">
+      <Dialog open={modalOpen} onClose={handleClose} maxWidth="sm" fullWidth>
+        <DialogTitle>新規店舗取扱商品</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            新しい店舗取扱商品の情報を入力してください。
+          </DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            name="name"
+            label="商品名"
+            type="text"
+            fullWidth
+            value={newStoreProduct.name}
+            onChange={handleChange}
+          />
+          <FormControl fullWidth margin="dense">
+            <InputLabel id="store-select-label">ストア</InputLabel>
+            <Select
+              labelId="store-select-label"
+              name="storeId"
+              value={newStoreProduct.storeId}
+              onChange={handleSelectChange}
+              label="ストア"
+            >
+              {stores && stores.map((store) => (
+                <MenuItem key={store.id} value={store.id}>
+                  {store.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl fullWidth margin="dense">
             <InputLabel id="item-select-label">食材</InputLabel>
             <Select
               labelId="item-select-label"
-              value={item_id}
-              onChange={(e) => setItemId(e.target.value as number)}
+              name="itemId"
+              value={newStoreProduct.itemId}
+              onChange={handleSelectChange}
               label="食材"
             >
-              {items.map((item) => (
+              {items && items.map((item) => (
                 <MenuItem key={item.id} value={item.id}>
                   {item.name}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
+          <FormControl fullWidth margin="dense">
+            <InputLabel id="product-category-select-label">銘柄</InputLabel>
+            <Select
+              labelId="product-category-select-label"
+              name="productCategoryId"
+              value={newStoreProduct.productCategoryId}
+              onChange={handleSelectChange}
+              label="銘柄"
+            >
+              {productCategories && productCategories.map((productCategory) => (
+                <MenuItem key={productCategory.id} value={productCategory.id}>
+                  {productCategory.brand}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           <TextField
-            margin="normal"
-            fullWidth
-            label="銘柄"
-            value={brand}
-            onChange={(e) => setBrand(e.target.value)}
-          />
-          <TextField
-            margin="normal"
-            fullWidth
+            margin="dense"
+            name="itemQuantity"
             label="量"
-            value={unit}
-            onChange={(e) => setUnit(e.target.value)}
+            type="number"
+            fullWidth
+            value={newStoreProduct.itemQuantity}
+            onChange={handleChange}
           />
-          <Button onClick={handleSubmit} variant="contained" sx={{ mt: 2 }}>
-            保存
-          </Button>
-        </>
-      </CustomModal> */}
-
-      {/* <Dialog
-        open={deleteConfirmOpen}
-        onClose={handleCancelDelete}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title">{"この商品区分を削除しますか？"}</DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            この操作は元に戻せません。本当に削除しますか？
-          </DialogContentText>
+          <TextField
+            margin="dense"
+            name="url"
+            label="URL"
+            type="text"
+            fullWidth
+            value={newStoreProduct.url}
+            onChange={handleChange}
+          />
+          <TextField
+            margin="dense"
+            name="imageUrl"
+            label="画像URL"
+            type="text"
+            fullWidth
+            value={newStoreProduct.imageUrl}
+            onChange={handleChange}
+          />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCancelDelete} color="primary">
+          <Button onClick={handleClose} color="secondary">
             キャンセル
           </Button>
-          <Button onClick={handleDelete} color="primary" autoFocus>
-            削除
+          <Button onClick={handleSubmit} color="primary">
+            保存
           </Button>
         </DialogActions>
-      </Dialog> */}
+      </Dialog>
     </Layout>
   );
 };
